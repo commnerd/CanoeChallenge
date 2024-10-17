@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('funds', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name');
             $table->integer('start_year');
-            $table->unsignedBigInteger('fund_manager_id')->unique();
+            $table->unsignedBigInteger('fund_manager_id');
             $table->foreign('fund_manager_id')->references('id')->on('companies');
             $table->timestamps();
         });

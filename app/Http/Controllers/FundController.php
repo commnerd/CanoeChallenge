@@ -24,7 +24,10 @@ class FundController extends Controller
      */
     public function store(StoreFundRequest $request): JsonResponse
     {
+        $fundService = app()->make(\App\Services\FundService::class);
         $fund = Fund::create($request->toArray());
+
+        $fundService->handleDuplicate($fund);
 
         return response()->json([
             'status' => 'success',

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\DuplicateFundWarningEvent;
 use App\Models\Fund;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -24,4 +25,14 @@ class FundService
         return $query;
     }
 
+    function handleDuplicate(Fund $fund): void {
+        $isDuplicate = Fund::where('fund_manager_id', $fund->fund_manager_id)
+            ->where('name', $fund->name)
+            ->where('id', '<>', $fund->id)
+            ->count() > 0;
+
+        $isDuplicate |= in_array($fund->name, $fund->aliases->pluck('name')->toArray());
+        
+        DuplicateFundWarningEvent::dispatchIf($isDuplicate, $fund);
+    }
 }
