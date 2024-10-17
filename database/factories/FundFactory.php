@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Company;
+use App\Models\{Company, Fund};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,7 +21,7 @@ class FundFactory extends Factory
         return [
             'name' => fake()->unique()->name(),
             'start_year' => rand(1800, Carbon::now()->year),
-            'fund_manager_id' => Company::inRandomOrder()->first()->id,
+            'fund_manager_id' => Company::whereNotIn('id', Fund::select('fund_manager_id')->get()->toArray())->inRandomOrder()->first()->id ?? 1,
         ];
     }
 }

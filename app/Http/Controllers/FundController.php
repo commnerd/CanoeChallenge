@@ -5,16 +5,18 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFundRequest;
 use App\Http\Requests\UpdateFundRequest;
 use App\Models\Fund;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\{JsonResponse, Request};
 
 class FundController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(Fund::paginate(self::PAGE_SIZE));
+        $fundService = app()->make(\App\Services\FundService::class);
+
+        return response()->json($fundService->applyFilters($request)->paginate(self::PAGE_SIZE));
     }
 
     /**
@@ -22,7 +24,12 @@ class FundController extends Controller
      */
     public function store(StoreFundRequest $request): JsonResponse
     {
-        //
+        $fund = Fund::create($request->toArray());
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $fund->toArray(),
+        ], 201);
     }
 
     /**
@@ -30,7 +37,10 @@ class FundController extends Controller
      */
     public function show(Fund $fund): JsonResponse
     {
-        //
+        return response()->json([
+            'status' => 'success',
+            'data' => $fund->toArray(),
+        ]);
     }
 
     /**
@@ -38,7 +48,12 @@ class FundController extends Controller
      */
     public function update(UpdateFundRequest $request, Fund $fund): JsonResponse
     {
-        //
+        $fund->update($request->all());
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $fund->toArray(),
+        ]);
     }
 
     /**
@@ -46,6 +61,8 @@ class FundController extends Controller
      */
     public function destroy(Fund $fund): JsonResponse
     {
-        //
+        $fund->delete();
+
+        return response()->json(['status' => 'success']);
     }
 }

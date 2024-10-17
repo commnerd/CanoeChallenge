@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->integer('start_year');
-            $table->unsignedBigInteger('fund_manager_id');
+            $table->unsignedBigInteger('fund_manager_id')->unique();
             $table->foreign('fund_manager_id')->references('id')->on('companies');
             $table->timestamps();
         });
