@@ -5,21 +5,22 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreFundRequest;
 use App\Http\Requests\UpdateFundRequest;
 use App\Models\Fund;
+use Illuminate\Http\JsonResponse;
 
 class FundController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        return response()->json(Fund::paginate(self::PAGE_SIZE));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreFundRequest $request)
+    public function store(StoreFundRequest $request): JsonResponse
     {
         //
     }
@@ -27,7 +28,7 @@ class FundController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Fund $fund)
+    public function show(Fund $fund): JsonResponse
     {
         //
     }
@@ -35,7 +36,7 @@ class FundController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateFundRequest $request, Fund $fund)
+    public function update(UpdateFundRequest $request, Fund $fund): JsonResponse
     {
         //
     }
@@ -43,7 +44,7 @@ class FundController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Fund $fund)
+    public function destroy(Fund $fund): JsonResponse
     {
         //
     }
