@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DuplicateFund;
+use App\Models\{DuplicateFund, Fund};
 use Illuminate\Http\JsonResponse;
 
 class DuplicateFundController extends Controller
@@ -12,6 +12,10 @@ class DuplicateFundController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(DuplicateFund::paginate(self::PAGE_SIZE));
+        $duplicates = DuplicateFund::paginate(self::PAGE_SIZE)->map(function($duplicate) {
+            return $duplicate->fund_id;
+        });
+
+        return response()->json(Fund::whereIn('id', $duplicates)->paginate(self::PAGE_SIZE));
     }
 }
