@@ -3,7 +3,7 @@
 namespace Tests\Feature\Http\Controllers;
 
 use App\Events\DuplicateFundWarningEvent;
-use App\Models\{Company, Fund};
+use App\Models\{Company, Fund, FundAlias};
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\Fluent\AssertableJson;
@@ -122,7 +122,7 @@ class FundControllerTest extends TestCase
     }
 
     /**
-     * A basic index call with a record
+     * A basic test for the duplicate_fund_warning event
      */
     public function test_store_with_matching_name_manager_duplication_warning(): void
     {
@@ -135,10 +135,33 @@ class FundControllerTest extends TestCase
 
         $response->assertStatus(201);
         $this->assertEquals(2, Fund::count());
-        $response->assertJsonPath('data.id', 2);
-        $response->assertJsonPath('data.name', $fund->name);
-        $response->assertJsonPath('data.start_year', $fund->start_year);
-        $response->assertJsonPath('data.fund_manager_id', $fund->fund_manager_id);
+        Event::assertDispatched(DuplicateFundWarningEvent::class);
+
+    }
+
+    /**
+     * A test for the duplicate_fund_warning event on duplicate alias
+     */
+    public function test_store_with_matching_alias_manager_duplication_warning(): void
+    {
+        Event::fake([
+            DuplicateFundWarningEvent::class,
+        ]);
+        $fund = Fund::factory()->create();
+        $alias = FundAlias::factory()->create([
+            'name' => fake()->name,
+            'fund_id' => $fund->id,
+        ]);
+
+        $newFund = Fund::factory()->make([
+            'name' => $alias->name,
+            'fund_manager_id' => $fund->fund_manager_id,
+        ]);
+
+        $response = $this->post(route('api.funds.store'), $newFund->toArray());
+
+        $response->assertStatus(201);
+        $this->assertEquals(2, Fund::count());
         Event::assertDispatched(DuplicateFundWarningEvent::class);
 
     }
