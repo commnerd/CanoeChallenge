@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers;
 
 use App\Events\DuplicateFundWarningEvent;
+use App\Listeners\DuplicateFundWarningListener;
 use App\Models\{Company, Fund, FundAlias};
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Event;
@@ -124,7 +125,7 @@ class FundControllerTest extends TestCase
     /**
      * A basic test for the duplicate_fund_warning event
      */
-    public function test_store_with_matching_name_manager_duplication_warning(): void
+    public function test_store_with_matching_name_duplication_warning(): void
     {
         Event::fake([
             DuplicateFundWarningEvent::class,
@@ -140,9 +141,27 @@ class FundControllerTest extends TestCase
     }
 
     /**
+     * A basic test for the duplicate_fund_warning listener
+     */
+    public function test_store_with_matching_name_duplication_listener(): void
+    {
+        Event::fake([
+            DuplicateFundWarningEvent::class,
+        ]);
+        $fund = Fund::factory()->create();
+
+        $response = $this->post(route('api.funds.store'), $fund->toArray());
+
+        $response->assertStatus(201);
+        $this->assertEquals(2, Fund::count());
+        Event::assertListening(DuplicateFundWarningEvent::class, DuplicateFundWarningListener::class);
+
+    }
+
+    /**
      * A test for the duplicate_fund_warning event on duplicate alias
      */
-    public function test_store_with_matching_alias_manager_duplication_warning(): void
+    public function test_store_with_matching_alias_duplication_warning(): void
     {
         Event::fake([
             DuplicateFundWarningEvent::class,
