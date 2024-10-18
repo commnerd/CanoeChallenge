@@ -11,6 +11,15 @@ class FundAlias extends Model
     use HasFactory;
 
     /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+    ];
+
+    /**
      * Fund relationship
      * 
      * @return BelongsTo relationship to funds table

@@ -51,6 +51,14 @@ class FundController extends Controller
     public function update(UpdateFundRequest $request, Fund $fund): JsonResponse
     {
         $fund->update($request->all());
+        $fund->aliases()->delete();
+        foreach($request->aliases ?? [] as $alias) {
+            $fund->aliases()->create($alias);
+        }
+
+        $fund->portfolio()->sync($request->portfolio ?? []);
+
+        $fund->load(['aliases', 'portfolio']);
 
         return response()->json([
             'status' => 'success',

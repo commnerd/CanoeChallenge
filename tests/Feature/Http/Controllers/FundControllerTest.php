@@ -5,9 +5,7 @@ namespace Tests\Feature\Http\Controllers;
 use App\Events\DuplicateFundWarningEvent;
 use App\Listeners\DuplicateFundWarningListener;
 use App\Models\{Company, Fund, FundAlias};
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\Feature\TestCase;
 
 class FundControllerTest extends TestCase
@@ -55,7 +53,9 @@ class FundControllerTest extends TestCase
     {
         Company::factory(50)->create()->each(function ($company, $index) {
             if($index % 2 > 0) {
-                Fund::factory()->create();
+                Fund::factory()->create([
+                    'fund_manager_id' => $company->id
+                ]);
             }
         });
 
@@ -106,7 +106,7 @@ class FundControllerTest extends TestCase
     }
 
     /**
-     * A basic index call with a record
+     * A basic store call
      */
     public function test_store_endpoint(): void
     {
@@ -211,7 +211,7 @@ class FundControllerTest extends TestCase
             'fund_manager_id' => $fund->fund_manager_id,
         ]);
 
-        $response = $this->put(route('api.funds.show', $fund), $fundUpdate->toArray());
+        $response = $this->put(route('api.funds.update', $fund), $fundUpdate->toArray());
 
         $response->assertStatus(200);
         $response->assertJsonPath('data.id', $fund->id);
@@ -227,7 +227,7 @@ class FundControllerTest extends TestCase
     {
         $fund = Fund::factory()->create();
 
-        $response = $this->delete(route('api.funds.show', $fund));
+        $response = $this->delete(route('api.funds.destroy', $fund));
 
         $response->assertStatus(200);
         $this->assertEquals(0, Fund::count());
