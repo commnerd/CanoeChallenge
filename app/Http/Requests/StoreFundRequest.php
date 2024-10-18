@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreFundRequest extends FormRequest
@@ -22,7 +23,9 @@ class StoreFundRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required',
+            'start_year' => 'required|numeric|min:1800|max:'.Carbon::now()->year,
+            'fund_manager_id' => 'required|numeric|exists:companies,id'
         ];
     }
 }
