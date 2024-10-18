@@ -16,7 +16,7 @@ class FundController extends Controller
     {
         $fundService = app()->make(\App\Services\FundService::class);
 
-        return response()->json($fundService->applyFilters($request)->paginate(self::PAGE_SIZE));
+        return response()->json($fundService->applyFilters($request)->with(['portfolio', 'aliases'])->paginate(self::PAGE_SIZE));
     }
 
     /**
