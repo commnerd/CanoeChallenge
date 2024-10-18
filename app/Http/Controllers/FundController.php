@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreFundRequest;
-use App\Http\Requests\UpdateFundRequest;
+use App\Http\Requests\{StoreFundRequest, UpdateFundRequest};
 use App\Models\Fund;
 use Illuminate\Http\{JsonResponse, Request};
 

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
 
 class UpdateFundRequest extends FormRequest
 {
@@ -20,12 +21,14 @@ class UpdateFundRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules(Request $request): array
     {
         return [
             'name' => 'required',
             'start_year' => 'required|numeric|min:1800|max:'.Carbon::now()->year,
-            'fund_manager_id' => 'required|numeric|exists:companies,id'
+            'fund_manager_id' => 'required|numeric|exists:companies,id',
+            'aliases.*.name' => 'not_in:'.$request->fund->name,
+            'portfolio.*.id' => 'exists:companies,id|not_in:'.$request->fund->id
         ];
     }
 }
