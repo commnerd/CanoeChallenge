@@ -4,7 +4,7 @@ namespace Tests\Feature\Http\Controllers;
 
 use App\Events\DuplicateFundWarningEvent;
 use App\Listeners\DuplicateFundWarningListener;
-use App\Models\{Company, Fund, FundAlias};
+use App\Models\{Company, DuplicateFund, Fund, FundAlias};
 use Illuminate\Support\Facades\Event;
 use Tests\Feature\TestCase;
 
@@ -218,6 +218,44 @@ class FundControllerTest extends TestCase
         $response->assertJsonPath('data.name', $fundUpdate->name);
         $response->assertJsonPath('data.start_year', $fundUpdate->start_year);
         $response->assertJsonPath('data.fund_manager_id', $fundUpdate->fund_manager_id);
+    }
+
+    /**
+     * A basic update endpoint call
+     */
+    public function test_update_endpoint_with_aliases(): void
+    {
+        $fund = Fund::factory()->create();
+        $fundUpdate = Fund::factory()->make([
+            'fund_manager_id' => $fund->fund_manager_id,
+        ]);
+        $fundUpdate->aliases = [
+            ['name' => 'biz'],
+            ['name' => 'baz'],
+        ];
+
+        $response = $this->put(route('api.funds.update', $fund), $fundUpdate->toArray());
+
+        $response->assertStatus(200);
+        $this->assertEquals(2, FundAlias::count());
+    }
+
+    /**
+     * A basic update endpoint call
+     */
+    public function test_update_endpoint_with_portfolio_entries(): void
+    {
+        Company::factory(3)->create();
+        $fund = Fund::factory()->create();
+        $fundUpdate = Fund::factory()->make([
+            'fund_manager_id' => $fund->fund_manager_id,
+        ]);
+        $fundUpdate->portfolio = [2,3,4];
+
+        $response = $this->put(route('api.funds.update', $fund), $fundUpdate->toArray());
+
+        $response->assertStatus(200);
+        $this->assertEquals(3, $fund->portfolio()->count());
     }
 
     /**
