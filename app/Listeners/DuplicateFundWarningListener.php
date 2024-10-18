@@ -3,23 +3,15 @@
 namespace App\Listeners;
 
 use App\Events\DuplicateFundWarningEvent;
-use App\Models\Fund;
+use App\Models\DuplicateFund;
 
 class DuplicateFundWarningListener
 {
-    /**
-     * Create the event listener.
-     */
-    public function __construct()
-    {
-        //
-    }
-
     /**
      * Handle the event.
      */
     public function handle(DuplicateFundWarningEvent $event): void
     {
-        dd($event);
+        DuplicateFund::create(['fund_id' => $event->fund->id]);
     }
 }
