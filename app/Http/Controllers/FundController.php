@@ -26,8 +26,16 @@ class FundController extends Controller
         $fundService = app()->make(\App\Services\FundService::class);
         $fund = Fund::create($request->toArray());
 
-        $fundService->handleDuplicate($fund);
+        foreach($request->aliases ?? [] as $alias) {
+            $fund->aliases()->create($alias);
+        }
 
+        $fund->portfolio()->sync($request->portfolio ?? []);
+
+        $fundService->handleDuplicate($fund);
+        
+        $fund->load('aliases', 'portfolio');
+        
         return response()->json([
             'status' => 'success',
             'data' => $fund->toArray(),
@@ -41,7 +49,7 @@ class FundController extends Controller
     {
         return response()->json([
             'status' => 'success',
-            'data' => $fund->toArray(),
+            'data' => $fund->load('aliases', 'portfolio')->toArray(),
         ]);
     }
 

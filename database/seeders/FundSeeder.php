@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Fund;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class FundSeeder extends Seeder
@@ -13,6 +12,6 @@ class FundSeeder extends Seeder
      */
     public function run(): void
     {
-        Fund::factory(10)->create();
+        Fund::factory(50)->create();
     }
 }

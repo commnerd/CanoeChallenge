@@ -37,6 +37,5 @@ class DuplicateFundControllerTest extends TestCase
         $response->assertJsonPath('data.0.name', $fund->name);
         $response->assertJsonPath('data.0.year', $fund->year);
         $response->assertJsonPath('data.0.fund_manager_id', $fund->fund_manager_id);
-
     }
 }

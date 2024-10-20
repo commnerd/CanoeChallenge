@@ -4,7 +4,7 @@ namespace Tests\Feature\Http\Controllers;
 
 use App\Events\DuplicateFundWarningEvent;
 use App\Listeners\DuplicateFundWarningListener;
-use App\Models\{Company, DuplicateFund, Fund, FundAlias};
+use App\Models\{Company, Fund, FundAlias};
 use Illuminate\Support\Facades\Event;
 use Tests\Feature\TestCase;
 
@@ -123,6 +123,40 @@ class FundControllerTest extends TestCase
     }
 
     /**
+     * A store call with aliases
+     */
+    public function test_store_with_aliases(): void
+    {
+        $fund = Fund::factory()->make();
+        $fund->aliases = [
+            ['name' => 'something'],
+            ['name' => 'something else'],
+        ];
+
+        $response = $this->post(route('api.funds.store'), $fund->toArray());
+
+        $response->assertStatus(201);
+        $this->assertEquals(2, FundAlias::count());
+    }
+
+    /**
+     * A store call with portfolio entries
+     */
+    public function test_store_with_portfolio(): void
+    {
+        Company::factory(2)->create();
+
+        $fund = Fund::factory()->make();
+        $fund->portfolio = [2,3];
+
+        $response = $this->post(route('api.funds.store'), $fund->toArray());
+
+        $fund = Fund::with('portfolio')->findOrFail(1);
+        $response->assertStatus(201);
+        $this->assertEquals(2, $fund->portfolio()->count());
+    }
+
+    /**
      * A basic test for the duplicate_fund_warning event
      */
     public function test_store_with_matching_name_duplication_warning(): void
@@ -190,8 +224,16 @@ class FundControllerTest extends TestCase
      */
     public function test_show_endpoint(): void
     {
+        
         $fund = Fund::factory()->create();
-
+        $portfolio = [];
+        $fund->aliases()->create(['name' => 'something']);
+        $fund->aliases()->create(['name' => 'another thing']);
+        Company::factory(2)->create()->each(function($company) use ($fund, &$portfolio) {
+            $fund->portfolio()->save($company);
+            $portfolio[] = $company->name;
+        });
+        
         $response = $this->getJson(route('api.funds.show', $fund));
 
         $response->assertStatus(200);
@@ -199,6 +241,10 @@ class FundControllerTest extends TestCase
         $response->assertJsonPath('data.name', $fund->name);
         $response->assertJsonPath('data.start_year', $fund->start_year);
         $response->assertJsonPath('data.fund_manager_id', $fund->fund_manager_id);
+        $response->assertJsonPath('data.aliases.0.name', 'something');
+        $response->assertJsonPath('data.aliases.1.name', 'another thing');
+        $response->assertJsonPath('data.portfolio.0.name', $portfolio[0]);
+        $response->assertJsonPath('data.portfolio.1.name', $portfolio[1]);
     }
 
     /**
@@ -221,7 +267,7 @@ class FundControllerTest extends TestCase
     }
 
     /**
-     * A basic update endpoint call
+     * An update with aliases
      */
     public function test_update_endpoint_with_aliases(): void
     {
@@ -241,9 +287,50 @@ class FundControllerTest extends TestCase
     }
 
     /**
-     * A basic update endpoint call
+     * An update with an alias reduction
+     */
+    public function test_update_endpoint_with_alias_reduction(): void
+    {
+        $fund = Fund::factory()->create();
+        FundAlias::factory(2)->create([
+            'fund_id' => $fund->id
+        ]);
+
+        $fund = Fund::with('aliases')->findOrFail($fund->id);
+        $fundPayload = $fund->toArray();
+        unset($fundPayload['aliases'][0]);
+
+        $response = $this->put(route('api.funds.update', $fund), $fundPayload);
+
+        $response->assertStatus(200);
+        $this->assertEquals(1, FundAlias::count());
+    }
+
+    /**
+     * An update call with portfolio entries
      */
     public function test_update_endpoint_with_portfolio_entries(): void
+    {
+        Company::factory(3)->create();
+        $fund = Fund::factory()->create();
+        $fund->portfolio()->sync([2,3,4]);
+
+        $fund->load('portfolio');
+
+        $fundPayload = $fund->toArray();
+        $fundPayload['portfolio'] = [2, 4];
+
+        $response = $this->put(route('api.funds.update', $fund), $fundPayload);
+
+        $fund->load('portfolio');
+        $response->assertStatus(200);
+        $this->assertEquals(2, $fund->portfolio()->count());
+    }
+
+    /**
+     * An update call with portfolio entry reduction
+     */
+    public function test_update_endpoint_with_portfolio_entry_reduction(): void
     {
         Company::factory(3)->create();
         $fund = Fund::factory()->create();
